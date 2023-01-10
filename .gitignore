@@ -1,0 +1,12 @@
+ /.venv
+/.idea
+**/__pycache__/
+/publish/.vscode
+*.log
+*.fls
+*.fdb_latexmk
+*.aux
+*.blg
+*.bbl
+*.gz
+*.out

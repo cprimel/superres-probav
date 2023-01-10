@@ -1,0 +1,79 @@
+\documentclass{article}
+
+\usepackage{arxiv}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{cleveref}       % smart cross-referencing
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{doi}
+\usepackage{todonotes}
+
+\title{Super-resolution image reconstruction for Earth observation}
+
+\date{April 8, 2022}
+
+\author{Casey ~Primel}
+
+\renewcommand{\headeright}{Project Proposal}
+\renewcommand{\undertitle}{Project Proposal}
+\renewcommand{\shorttitle}{Super-resolution image reconstruction}
+
+\hypersetup{
+pdftitle={Super-resolution image reconstruction},
+pdfsubject={q-bio.NC, q-bio.QM},
+pdfauthor={Casey ~Primel},
+pdfkeywords={super-resolution, image reconstruction},
+}
+
+\begin{document}
+\maketitle
+
+
+\section{Project Details}
+    \begin{description}
+        \item[Project Title:] Super-resolution image reconstruction for Earth observation\footnote{This will eventually be something catchier.}
+        \item[Team member(s):] Casey Primel (ctp219@nyu.edu)
+        \item[Repository:] \url{https://github.com/cprimel/proba-v-superresolution}
+    \end{description}
+
+\section{Problem description}
+\label{sec:headings}
+
+Super-resolution image reconstruction (SR) refers to algorithms for obtaining a high-resolution image from a single or multiple low-resolution images by increasing the number of pixels per unit area in an image. SR is especially important in context where hardware-based solutions, e.g., increasing the sensor size or decreasing the pixel size, are prohibitively expensive or impractical. As a result, SR finds many use cases from smartphones to Earth observation satellites. SR methods fall into two broad categories, frequency and spatial. We can further distinguish between single image (SISR) and multiple image SR (MISR) \citep{Nasrollahi2014}. As the names imply, SISR obtains a high-resolution image from a single low-resolution input and MISR from multiple low-resolution inputs. Another important distinction is in their outputs: whereas SISR methods require imputing "lost" pixels to generate their high-resolution outputs, MISR can mobilize subpixel differences to maintain the linkage between imputed pixel values and real observations \citep{Martens2021}.
+
+The project proposed here focuses on MISR in the context of earth observation (EO) imagery. The problem in EO is, simply put, there is a high availability of low-resolution images but low availability of high-resolution images for any given location over a particular time period. In many cases, the images might come from successive passes of a satellite over the same coordinates leading to differences in illumination, cloud cover and actual image content. In other cases, the images might be an instantaneous multi-spectral snapshot of a location produced from separate instruments of the same satellite on a single pass. From this data, one needs to generate a series of images with temporal and spatial resolutions adequate to the problem at hand. For example, given a low-resolution image for a particular date and two high-resolution images taken close to that date, one needs to derive a single high-resolution for the given date. Within remote sensing, this is accomplished through methods of spatio-temporal fusion: "fusing" temporally dense, coarse resolution images and temporally sparse, high-resolution images. MISR, in contrast, aims to produce a single high-resolution output from only low-resolution inputs.
+
+\section{Project description}
+
+This project takes as its starting point the prompt and dataset provided by \citet{Martens2021} which served as the basis of the European Space Agency's Advanced Concepts Team's PROBA-V Super Resolution challenge in 2019.\footnote{https://kelvins.esa.int/proba-v-super-resolution/} The challenge was run to test the performance of MISR methods for post-processing of satellite images taken over a period of multiple days. Without exception, submissions were built around convolutional neural network architectures, e.g., the winning submission from \citet{Molini2020}. Postmortem submissions showed improvements by formalizing the MISR problem as SISR on video frames, incorporating time as an additional dimension of information \citep*{mark_bajo_2020_3733116,Dorr2020}. The models proposed by the latter have the added benefit of being less complex and capable of being practically run on a single retail GPU.
+
+The aim of the project is to build and extend on existing solutions, in particular the modified WDSR network architecture proposed by \citet{mark_bajo_2020_3733116} and \citet{Dorr2020}. The proposed contribution involves the fine-tuning of the initial SR model by training it as a generator in a generative adversarial network. This technique, first proposed by \citet{Ledig2016} for SISR, works by incorporating an additional notion of a perceptual loss on top of the pixel-wise loss used to train the initial SR model. For SISR, this results in significant gains to perceptual quality. As indicated by \citet{Zhao2017}, mixing pixel-wise and perceptual loss can lead to better results even when measured against metrics that do not take into account human perception. The question to be answered here is whether such a technique can also be used to improve result in the specific context of EO imagery. 
+
+\section{Data}
+
+The dataset is publicly available from the PROBA-V Super Resolution challenge portal. It consists of satellite data from 74 regions. It includes reflectances for the red and near infrared spectral bands at 300 meter and 100 meter resolutions. The 300m resolution data is provided as 128x128 grayscale pixel images and the 100m as 384x384 grayscale pixel images. Each image also includes a quality map which indicates which pixels in the image are concealed (e.g., by cloud cover) and which are clear. There are 1450 scenes in the dataset, each containing an average of 19 different low-resolution images. More details can be found on the challenge website.\footnote{https://kelvins.esa.int/proba-v-super-resolution/data/}
+
+\section{Methodologies}
+
+The project will be implemented in Python, using NumPy and PyTorch where appropriate. Existing solutions are written exclusively in TensorFlow. Part of the project will, therefore, be implementing the modified WDSR network architecture in PyTorch. 
+
+In terms of image processing, while some ready-made image processing routines are available as part of the scikit-image (e.g. phase correlation for image registration) or OpenCV (e.g., bicubic interpolation), I intend to implement all image processing functions from scratch. Most image processing will take place during data preparation, data augmentation and the evaluation steps.
+
+In terms of hardware, model training will be conducted on a cloud-based GPU (Google Colab).
+
+\subsection{Evaluation}
+
+The results of the model will be evaluated against two naive upscaling techniques, nearest neighbors and bicubic interpolation, as well as a simple convolutional neural network solution proposed as part of \citet{Martens2021} feasibility study. The results published as part of the Proba-V challenge will also be considered as aspirational benchmarks. As this project is more exploratory in nature, the intention is not necessarily to beat those results as part of this project. 
+
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+
+\end{document}
